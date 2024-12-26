@@ -13,14 +13,6 @@ interface DeityCategory {
   searchTerm: string;
 }
 
-interface DeityPageData {
-  items: Array<{
-    deity: string;
-    songs: Song[];
-  }>;
-  nextPage: number;
-}
-
 const getDaySpecificDeity = () => {
   const day = new Date().getDay();
   switch (day) {
