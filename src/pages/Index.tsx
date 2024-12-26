@@ -1,9 +1,11 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { searchSongs } from "@/services/musicService";
+import { getSongSuggestions } from "@/services/suggestionService";
 import { Song } from "@/types/music";
 import SearchBar from "@/components/SearchBar";
 import MusicPlayer from "@/components/MusicPlayer";
+import DeitySection from "@/components/home/DeitySection";
 import { useToast } from "@/components/ui/use-toast";
 
 const getDaySpecificDeity = () => {
@@ -33,55 +35,82 @@ const Index = () => {
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
   const [currentSongList, setCurrentSongList] = useState<Song[]>([]);
   const { toast } = useToast();
+  const observer = useRef<IntersectionObserver>();
 
   const todaysDeity = getDaySpecificDeity();
-  
-  const { data: searchResults, isLoading: searchLoading, error: searchError } = useQuery({
+
+  const { data: searchResults, isLoading: searchLoading } = useQuery({
     queryKey: ["songs", searchQuery],
     queryFn: () => searchSongs(searchQuery),
     enabled: !!searchQuery,
   });
 
-  // Query for today's special deity songs
   const { data: todaysSongs, isLoading: todayLoading } = useQuery({
     queryKey: ["todaysSongs", todaysDeity],
     queryFn: () => searchSongs(`${todaysDeity} Bhajan`),
   });
 
-  // Queries for different deity categories
-  const deitySongs = useQuery({
-    queryKey: ["deitySongs"],
-    queryFn: async () => {
+  const {
+    data: infiniteDeityData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
+    queryKey: ["infiniteDeities"],
+    queryFn: async ({ pageParam = 0 }) => {
       const results = await Promise.all(
-        deityCategories.map(deity => 
+        deityCategories.slice(pageParam * 2, (pageParam + 1) * 2).map(deity =>
           searchSongs(deity.searchTerm).then(res => ({
             deity: deity.name,
             songs: res.data.results
           }))
         )
       );
-      return results;
+      return { items: results, nextPage: pageParam + 1 };
+    },
+    getNextPageParam: (lastPage, pages) => {
+      const hasMore = pages.length * 2 < deityCategories.length;
+      return hasMore ? lastPage.nextPage : undefined;
     },
   });
+
+  const lastElementRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver(entries => {
+        if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [hasNextPage, isFetchingNextPage, fetchNextPage]
+  );
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     if (query) {
-      // Update current song list with search results when searching
       if (searchResults?.data.results) {
         setCurrentSongList(searchResults.data.results);
       }
     } else {
-      // Reset to today's songs when search is cleared
       if (todaysSongs?.data.results) {
         setCurrentSongList(todaysSongs.data.results);
       }
     }
   };
 
-  const handleSongSelect = (song: Song, songList: Song[]) => {
+  const handleSongSelect = async (song: Song, songList: Song[]) => {
     setSelectedSong(song);
     setCurrentSongList(songList);
+    
+    // Fetch suggestions for the selected song
+    try {
+      const suggestions = await getSongSuggestions(song.id);
+      setCurrentSongList(prevList => [...prevList, ...suggestions]);
+    } catch (error) {
+      console.error("Failed to fetch song suggestions:", error);
+    }
   };
 
   const handleNextSong = () => {
@@ -91,23 +120,6 @@ const Index = () => {
       setSelectedSong(currentSongList[nextIndex]);
     }
   };
-
-  const getHighestQualityImage = (images: { quality: string; url: string }[]) => {
-    const qualityOrder = ["500x500", "150x150", "50x50"];
-    for (const quality of qualityOrder) {
-      const image = images.find(img => img.quality === quality);
-      if (image) return image.url;
-    }
-    return images[0]?.url;
-  };
-
-  if (searchError) {
-    toast({
-      title: "Error",
-      description: "Failed to fetch songs. Please try again.",
-      variant: "destructive",
-    });
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/20 to-player-background text-foreground p-6">
@@ -120,70 +132,7 @@ const Index = () => {
           <SearchBar onSearch={handleSearch} />
         </div>
 
-        {/* Today's Special Section */}
-        {!searchQuery && (
-          <div className="mb-12">
-            <h2 className="text-2xl font-semibold mb-6">
-              Today's Special: {todaysDeity} Bhajans
-            </h2>
-            {todayLoading ? (
-              <div className="text-center">
-                <div className="animate-pulse-light">Loading today's songs...</div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {todaysSongs?.data.results.slice(0, 3).map((song) => (
-                  <div
-                    key={song.id}
-                    className="bg-white/10 p-4 rounded-lg cursor-pointer hover:bg-white/20 transition-colors"
-                    onClick={() => handleSongSelect(song, todaysSongs.data.results)}
-                  >
-                    <img
-                      src={getHighestQualityImage(song.image)}
-                      alt={song.name}
-                      className="w-full aspect-square object-cover rounded-md mb-4"
-                    />
-                    <h3 className="font-semibold truncate">{song.name}</h3>
-                    <p className="text-sm opacity-80 truncate">
-                      {song.artists.primary.map(artist => artist.name).join(", ")}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Deity Categories */}
-        {!searchQuery && !deitySongs.isLoading && deitySongs.data?.map((category, index) => (
-          <div key={index} className="mb-12">
-            <h2 className="text-2xl font-semibold mb-6">
-              {category.deity} Bhajans
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {category.songs.slice(0, 3).map((song) => (
-                <div
-                  key={song.id}
-                  className="bg-white/10 p-4 rounded-lg cursor-pointer hover:bg-white/20 transition-colors"
-                  onClick={() => handleSongSelect(song, category.songs)}
-                >
-                  <img
-                    src={getHighestQualityImage(song.image)}
-                    alt={song.name}
-                    className="w-full aspect-square object-cover rounded-md mb-4"
-                  />
-                  <h3 className="font-semibold truncate">{song.name}</h3>
-                  <p className="text-sm opacity-80 truncate">
-                    {song.artists.primary.map(artist => artist.name).join(", ")}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-
-        {/* Search Results */}
-        {searchQuery && (
+        {searchQuery ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {searchResults?.data.results.map((song) => (
               <div
@@ -192,7 +141,9 @@ const Index = () => {
                 onClick={() => handleSongSelect(song, searchResults.data.results)}
               >
                 <img
-                  src={getHighestQualityImage(song.image)}
+                  src={song.image.find(img => img.quality === "500x500")?.url || 
+                       song.image.find(img => img.quality === "150x150")?.url || 
+                       song.image[0].url}
                   alt={song.name}
                   className="w-full aspect-square object-cover rounded-md mb-4"
                 />
@@ -203,6 +154,42 @@ const Index = () => {
               </div>
             ))}
           </div>
+        ) : (
+          <>
+            {!todayLoading && todaysSongs && (
+              <DeitySection
+                title={`Today's Special: ${todaysDeity} Bhajans`}
+                songs={todaysSongs.data.results.slice(0, 3)}
+                onSongSelect={handleSongSelect}
+              />
+            )}
+
+            {infiniteDeityData?.pages.map((page, pageIndex) => (
+              <React.Fragment key={pageIndex}>
+                {page.items.map((category, index) => (
+                  <div
+                    ref={
+                      pageIndex === infiniteDeityData.pages.length - 1 &&
+                      index === page.items.length - 1
+                        ? lastElementRef
+                        : undefined
+                    }
+                    key={category.deity}
+                  >
+                    <DeitySection
+                      title={`${category.deity} Bhajans`}
+                      songs={category.songs.slice(0, 3)}
+                      onSongSelect={handleSongSelect}
+                    />
+                  </div>
+                ))}
+              </React.Fragment>
+            ))}
+
+            {isFetchingNextPage && (
+              <div className="text-center py-4">Loading more...</div>
+            )}
+          </>
         )}
       </div>
 

@@ -1,17 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Song, AudioQuality } from "@/types/music";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Song } from "@/types/music";
+import { Volume2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/components/ui/use-toast";
-import { Play, Pause, Volume2 } from "lucide-react";
+import PlayerControls from "./player/PlayerControls";
+import QualitySelector from "./player/QualitySelector";
+import ProgressBar from "./player/ProgressBar";
 
 interface MusicPlayerProps {
   song: Song | null;
@@ -76,12 +70,6 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song, onNextSong }) => {
     }
   };
 
-  const formatTime = (time: number): string => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
-
   const handleVolumeChange = (value: number[]) => {
     const newVolume = value[0];
     setVolume(newVolume);
@@ -91,12 +79,13 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song, onNextSong }) => {
   };
 
   const handleQualityChange = (quality: string) => {
+    const wasPlaying = isPlaying;
     const currentTime = audioRef.current?.currentTime || 0;
     setSelectedQuality(quality);
     if (audioRef.current && song) {
       audioRef.current.src = getAudioUrl(song.downloadUrl);
       audioRef.current.currentTime = currentTime;
-      if (isPlaying) {
+      if (wasPlaying) {
         audioRef.current.play();
       }
     }
@@ -138,49 +127,21 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song, onNextSong }) => {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-4">
-                <Select value={selectedQuality} onValueChange={handleQualityChange}>
-                  <SelectTrigger className="w-[100px] bg-white/10 text-player-foreground">
-                    <SelectValue placeholder="Quality" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {song.downloadUrl.map((quality) => (
-                      <SelectItem key={quality.quality} value={quality.quality}>
-                        {quality.quality}kbps
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <QualitySelector
+                qualities={song.downloadUrl}
+                selectedQuality={selectedQuality}
+                onQualityChange={handleQualityChange}
+              />
             </div>
 
             <div className="flex flex-col space-y-2">
-              <div className="flex items-center justify-center space-x-4">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-12 w-12 rounded-full"
-                  onClick={handlePlayPause}
-                >
-                  {isPlaying ? (
-                    <Pause className="h-6 w-6" />
-                  ) : (
-                    <Play className="h-6 w-6" />
-                  )}
-                </Button>
-              </div>
+              <PlayerControls isPlaying={isPlaying} onPlayPause={handlePlayPause} />
 
-              <div className="flex items-center space-x-2">
-                <span className="text-sm">{formatTime(currentTime)}</span>
-                <Slider
-                  value={[currentTime]}
-                  max={duration || 100}
-                  step={1}
-                  onValueChange={handleSliderChange}
-                  className="flex-1"
-                />
-                <span className="text-sm">{formatTime(duration)}</span>
-              </div>
+              <ProgressBar
+                currentTime={currentTime}
+                duration={duration}
+                onTimeChange={handleSliderChange}
+              />
 
               <div className="flex items-center space-x-2">
                 <Volume2 className="h-4 w-4" />
