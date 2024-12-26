@@ -25,27 +25,27 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#4A148C",
+          DEFAULT: "#7E69AB", // Spiritual purple
           foreground: "#ffffff",
         },
         secondary: {
-          DEFAULT: "#FFD700",
-          foreground: "#000000",
+          DEFAULT: "#FEC6A1", // Soft orange for warmth
+          foreground: "#1A1F2C",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "#F1F0FB", // Soft gray
+          foreground: "#403E43",
         },
         accent: {
-          DEFAULT: "#B39DDB",
-          foreground: "#000000",
+          DEFAULT: "#E5DEFF", // Soft purple
+          foreground: "#221F26",
         },
         player: {
-          background: "#2D1B69",
+          background: "#1A1F2C", // Dark purple
           foreground: "#ffffff",
         },
       },
