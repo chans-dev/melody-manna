@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { searchSongs } from "@/services/musicService";
 import { getSongSuggestions } from "@/services/suggestionService";
@@ -7,6 +7,19 @@ import SearchBar from "@/components/SearchBar";
 import MusicPlayer from "@/components/MusicPlayer";
 import DeitySection from "@/components/home/DeitySection";
 import { useToast } from "@/components/ui/use-toast";
+
+interface DeityCategory {
+  name: string;
+  searchTerm: string;
+}
+
+interface DeityPageData {
+  items: Array<{
+    deity: string;
+    songs: Song[];
+  }>;
+  nextPage: number;
+}
 
 const getDaySpecificDeity = () => {
   const day = new Date().getDay();
@@ -22,7 +35,7 @@ const getDaySpecificDeity = () => {
   }
 };
 
-const deityCategories = [
+const deityCategories: DeityCategory[] = [
   { name: "Ganesh", searchTerm: "Ganesh Aarti" },
   { name: "Krishna", searchTerm: "Krishna Bhajan" },
   { name: "Shiva", searchTerm: "Shiv Bhajan" },
@@ -55,8 +68,9 @@ const Index = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage
-  } = useInfiniteQuery({
+  } = useInfiniteQuery<DeityPageData>({
     queryKey: ["infiniteDeities"],
+    initialPageParam: 0,
     queryFn: async ({ pageParam = 0 }) => {
       const results = await Promise.all(
         deityCategories.slice(pageParam * 2, (pageParam + 1) * 2).map(deity =>
@@ -68,8 +82,8 @@ const Index = () => {
       );
       return { items: results, nextPage: pageParam + 1 };
     },
-    getNextPageParam: (lastPage, pages) => {
-      const hasMore = pages.length * 2 < deityCategories.length;
+    getNextPageParam: (lastPage: DeityPageData) => {
+      const hasMore = lastPage.nextPage * 2 < deityCategories.length;
       return hasMore ? lastPage.nextPage : undefined;
     },
   });
@@ -104,7 +118,6 @@ const Index = () => {
     setSelectedSong(song);
     setCurrentSongList(songList);
     
-    // Fetch suggestions for the selected song
     try {
       const suggestions = await getSongSuggestions(song.id);
       setCurrentSongList(prevList => [...prevList, ...suggestions]);
