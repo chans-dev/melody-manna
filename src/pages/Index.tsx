@@ -31,6 +31,7 @@ const deityCategories = [
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedSong, setSelectedSong] = useState<Song | null>(null);
+  const [currentSongList, setCurrentSongList] = useState<Song[]>([]);
   const { toast } = useToast();
 
   const todaysDeity = getDaySpecificDeity();
@@ -65,19 +66,31 @@ const Index = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    if (query) {
+      // Update current song list with search results when searching
+      if (searchResults?.data.results) {
+        setCurrentSongList(searchResults.data.results);
+      }
+    } else {
+      // Reset to today's songs when search is cleared
+      if (todaysSongs?.data.results) {
+        setCurrentSongList(todaysSongs.data.results);
+      }
+    }
   };
 
-  const handleSongSelect = (song: Song) => {
+  const handleSongSelect = (song: Song, songList: Song[]) => {
     setSelectedSong(song);
+    setCurrentSongList(songList);
   };
 
-  if (searchError) {
-    toast({
-      title: "Error",
-      description: "Failed to fetch songs. Please try again.",
-      variant: "destructive",
-    });
-  }
+  const handleNextSong = () => {
+    if (currentSongList.length > 0 && selectedSong) {
+      const currentIndex = currentSongList.findIndex(song => song.id === selectedSong.id);
+      const nextIndex = (currentIndex + 1) % currentSongList.length;
+      setSelectedSong(currentSongList[nextIndex]);
+    }
+  };
 
   const getHighestQualityImage = (images: { quality: string; url: string }[]) => {
     const qualityOrder = ["500x500", "150x150", "50x50"];
@@ -87,6 +100,14 @@ const Index = () => {
     }
     return images[0]?.url;
   };
+
+  if (searchError) {
+    toast({
+      title: "Error",
+      description: "Failed to fetch songs. Please try again.",
+      variant: "destructive",
+    });
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary/20 to-player-background text-foreground p-6">
@@ -115,7 +136,7 @@ const Index = () => {
                   <div
                     key={song.id}
                     className="bg-white/10 p-4 rounded-lg cursor-pointer hover:bg-white/20 transition-colors"
-                    onClick={() => handleSongSelect(song)}
+                    onClick={() => handleSongSelect(song, todaysSongs.data.results)}
                   >
                     <img
                       src={getHighestQualityImage(song.image)}
@@ -144,7 +165,7 @@ const Index = () => {
                 <div
                   key={song.id}
                   className="bg-white/10 p-4 rounded-lg cursor-pointer hover:bg-white/20 transition-colors"
-                  onClick={() => handleSongSelect(song)}
+                  onClick={() => handleSongSelect(song, category.songs)}
                 >
                   <img
                     src={getHighestQualityImage(song.image)}
@@ -168,7 +189,7 @@ const Index = () => {
               <div
                 key={song.id}
                 className="bg-white/10 p-4 rounded-lg cursor-pointer hover:bg-white/20 transition-colors"
-                onClick={() => handleSongSelect(song)}
+                onClick={() => handleSongSelect(song, searchResults.data.results)}
               >
                 <img
                   src={getHighestQualityImage(song.image)}
@@ -185,7 +206,7 @@ const Index = () => {
         )}
       </div>
 
-      <MusicPlayer song={selectedSong} />
+      <MusicPlayer song={selectedSong} onNextSong={handleNextSong} />
     </div>
   );
 };

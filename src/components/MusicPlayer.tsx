@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Song, AudioQuality } from "@/types/music";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,10 @@ import { Play, Pause, Volume2 } from "lucide-react";
 
 interface MusicPlayerProps {
   song: Song | null;
+  onNextSong?: () => void;
 }
 
-const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
+const MusicPlayer: React.FC<MusicPlayerProps> = ({ song, onNextSong }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -25,6 +26,19 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
   const [selectedQuality, setSelectedQuality] = useState<string>("128");
   const audioRef = useRef<HTMLAudioElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (song && audioRef.current) {
+      setIsPlaying(true);
+      audioRef.current.play().catch((error) => {
+        toast({
+          title: "Playback Error",
+          description: "Unable to play the audio. Please try again.",
+          variant: "destructive",
+        });
+      });
+    }
+  }, [song]);
 
   const getAudioUrl = (qualities: AudioQuality[]): string => {
     const quality = qualities.find((q) => q.quality === selectedQuality);
@@ -88,13 +102,20 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
     }
   };
 
+  const handleSongEnd = () => {
+    setIsPlaying(false);
+    if (onNextSong) {
+      onNextSong();
+    }
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-player-background text-player-foreground p-4 shadow-lg">
       <audio
         ref={audioRef}
         src={song ? getAudioUrl(song.downloadUrl) : ""}
         onTimeUpdate={handleTimeUpdate}
-        onEnded={() => setIsPlaying(false)}
+        onEnded={handleSongEnd}
       />
 
       <div className="container mx-auto flex flex-col space-y-4">
@@ -103,7 +124,9 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <img
-                  src={song.image.find(img => img.quality === "150x150")?.url || song.image[0].url}
+                  src={song.image.find(img => img.quality === "500x500")?.url || 
+                       song.image.find(img => img.quality === "150x150")?.url || 
+                       song.image[0].url}
                   alt={song.name}
                   className="w-12 h-12 rounded-md"
                 />
@@ -117,7 +140,7 @@ const MusicPlayer: React.FC<MusicPlayerProps> = ({ song }) => {
 
               <div className="flex items-center space-x-4">
                 <Select value={selectedQuality} onValueChange={handleQualityChange}>
-                  <SelectTrigger className="w-[100px]">
+                  <SelectTrigger className="w-[100px] bg-white/10 text-player-foreground">
                     <SelectValue placeholder="Quality" />
                   </SelectTrigger>
                   <SelectContent>

@@ -25,11 +25,11 @@ export default {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#7E69AB", // Spiritual purple
-          foreground: "#ffffff",
+          DEFAULT: "#FEC6A1", // Soft orange for warmth
+          foreground: "#1A1F2C",
         },
         secondary: {
-          DEFAULT: "#FEC6A1", // Soft orange for warmth
+          DEFAULT: "#FEF7CD", // Soft yellow for divinity
           foreground: "#1A1F2C",
         },
         destructive: {
@@ -37,16 +37,16 @@ export default {
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "#F1F0FB", // Soft gray
+          DEFAULT: "#FFF5E6", // Light warm background
           foreground: "#403E43",
         },
         accent: {
-          DEFAULT: "#E5DEFF", // Soft purple
+          DEFAULT: "#FFE4CC", // Soft orange accent
           foreground: "#221F26",
         },
         player: {
-          background: "#1A1F2C", // Dark purple
-          foreground: "#ffffff",
+          background: "#1A1F2C", // Dark background for player
+          foreground: "#FEC6A1", // Warm text color
         },
       },
       borderRadius: {
