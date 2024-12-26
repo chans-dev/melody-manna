@@ -46,3 +46,11 @@ export interface SearchResponse {
     results: Song[];
   };
 }
+
+export interface DeityPageData {
+  items: Array<{
+    deity: string;
+    songs: Song[];
+  }>;
+  nextPage: number;
+}

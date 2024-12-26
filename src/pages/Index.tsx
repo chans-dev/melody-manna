@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { searchSongs } from "@/services/musicService";
 import { getSongSuggestions } from "@/services/suggestionService";
-import { Song } from "@/types/music";
+import { Song, DeityPageData } from "@/types/music";
 import SearchBar from "@/components/SearchBar";
 import MusicPlayer from "@/components/MusicPlayer";
 import DeitySection from "@/components/home/DeitySection";
@@ -71,16 +71,20 @@ const Index = () => {
   } = useInfiniteQuery<DeityPageData>({
     queryKey: ["infiniteDeities"],
     initialPageParam: 0,
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam }) => {
+      const currentPage = pageParam as number;
       const results = await Promise.all(
-        deityCategories.slice(pageParam * 2, (pageParam + 1) * 2).map(deity =>
+        deityCategories.slice(currentPage * 2, (currentPage + 1) * 2).map(deity =>
           searchSongs(deity.searchTerm).then(res => ({
             deity: deity.name,
             songs: res.data.results
           }))
         )
       );
-      return { items: results, nextPage: pageParam + 1 };
+      return {
+        items: results,
+        nextPage: currentPage + 1
+      };
     },
     getNextPageParam: (lastPage: DeityPageData) => {
       const hasMore = lastPage.nextPage * 2 < deityCategories.length;

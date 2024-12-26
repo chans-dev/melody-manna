@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Song } from "@/types/music";
+import { Song, AudioQuality } from "@/types/music";
 import { Volume2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { useToast } from "@/components/ui/use-toast";
