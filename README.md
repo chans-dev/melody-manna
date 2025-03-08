@@ -1,69 +1,83 @@
-# Welcome to your Lovable project
+# Melody Manna
 
-## Project info
+A modern web application built with cutting-edge technologies, created using the Lovable platform.
 
-**URL**: https://lovable.dev/projects/87c6d1f2-5325-4ce4-bd05-fcc6dbc9e70f
+## 🚀 Quick Start
 
-## How can I edit this code?
+### Prerequisites
 
-There are several ways of editing your application.
+- Node.js (Latest LTS version recommended)
+- npm (comes with Node.js)
 
-**Use Lovable**
+### Development Setup
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/87c6d1f2-5325-4ce4-bd05-fcc6dbc9e70f) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
+1. Clone the repository:
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+git clone https://github.com/chans-dev/melody-manna.git
+cd melody-manna
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
+```sh
+npm install
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+3. Start the development server:
+```sh
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 🛠️ Technologies Used
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+This project leverages modern web technologies:
 
-**Use GitHub Codespaces**
+- **Vite** - Next Generation Frontend Tooling
+- **React** - A JavaScript library for building user interfaces
+- **TypeScript** - JavaScript with syntax for types
+- **shadcn-ui** - Re-usable components built using Radix UI and Tailwind CSS
+- **Tailwind CSS** - A utility-first CSS framework
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🔄 Development Workflows
 
-## What technologies are used for this project?
+### Using Lovable Platform
 
-This project is built with .
+1. Visit the [Lovable Project Dashboard](https://lovable.dev/projects/87c6d1f2-5325-4ce4-bd05-fcc6dbc9e70f)
+2. Start prompting to make changes
+3. Changes will be automatically committed to this repository
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Using Local Development
 
-## How can I deploy this project?
+1. Make your changes in your preferred IDE
+2. Test locally using `npm run dev`
+3. Commit and push changes
+4. Changes will be reflected in Lovable
 
-Simply open [Lovable](https://lovable.dev/projects/87c6d1f2-5325-4ce4-bd05-fcc6dbc9e70f) and click on Share -> Publish.
+### Using GitHub Codespaces
 
-## I want to use a custom domain - is that possible?
+1. Click the "Code" button (green) on repository main page
+2. Select "Codespaces" tab
+3. Click "New codespace"
+4. Start coding in the browser!
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+## 🚀 Deployment
+
+### Quick Deploy
+1. Open [Lovable Project](https://lovable.dev/projects/87c6d1f2-5325-4ce4-bd05-fcc6dbc9e70f)
+2. Navigate to Share -> Publish
+
+### Custom Domain Setup
+Currently, custom domains are not directly supported through Lovable. However, you can:
+1. Deploy your project to Netlify
+2. Configure your custom domain through Netlify's dashboard
+3. For detailed instructions, visit [Custom Domains Documentation](https://docs.lovable.dev/tips-tricks/custom-domain/)
+
+## 🤝 Contributing
+
+Feel free to:
+- Submit bug reports
+- Propose new features
+- Create pull requests
+
+## 📝 Project Info
+
+**Project URL**: https://lovable.dev/projects/87c6d1f2-5325-4ce4-bd05-fcc6dbc9e70f
